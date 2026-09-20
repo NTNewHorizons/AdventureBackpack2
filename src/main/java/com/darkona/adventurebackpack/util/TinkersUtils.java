@@ -1,33 +1,16 @@
 package com.darkona.adventurebackpack.util;
 
-import java.util.UUID;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.util.FakePlayer;
 
 import com.darkona.adventurebackpack.reference.LoadedMods;
-import com.mojang.authlib.GameProfile;
-
-import cpw.mods.fml.common.FMLCommonHandler;
 
 public final class TinkersUtils {
 
     public static final ResourceLocation GUI_ICONS = new ResourceLocation("tinker", "textures/gui/icons.png");
-
-    private static final String CLASS_CRAFTING_LOGIC = "tconstruct.tools.logic.CraftingStationLogic";
-    private static final String CLASS_CRAFTING_STATION = "tconstruct.tools.inventory.CraftingStationContainer";
-    private static final String METHOD_ON_CRAFT_CHANGED = LoadedMods.DEV_ENV ? "onCraftMatrixChanged" : "func_75130_a";
-    private static final String FIELD_CRAFT_MATRIX = "craftMatrix";
-    private static final String FIELD_CRAFT_RESULT = "craftResult";
 
     private static final String PACKAGE_TCONSTRUCT = "tconstruct";
     private static final String PACKAGE_TOOLS = "tconstruct.items.tools";
@@ -104,9 +87,8 @@ public final class TinkersUtils {
     }
 
     public static boolean isToolOrWeapon(@Nullable ItemStack stack) {
-        if (stack == null) return false;
-
-        String cn = stack.getItem().getClass().getName();
+        if (stack == null || stack.getItem() == null) return false;
+        final String cn = stack.getItem().getClass().getName();
         return cn.startsWith(PACKAGE_TCONSTRUCT)
                 && (cn.startsWith(PACKAGE_TOOLS) || cn.startsWith(PACKAGE_WEAPONS) || cn.startsWith(PACKAGE_AMMO));
     }
@@ -117,24 +99,6 @@ public final class TinkersUtils {
 
     public static boolean isTool(String clazzName) {
         return LoadedMods.TCONSTRUCT && clazzName.startsWith(PACKAGE_TOOLS);
-    }
-
-    @Nullable
-    public static synchronized ItemStack getTinkersRecipe(InventoryCrafting craftMatrix) {
-        if (craftingStationInstance == null) return null;
-
-        try {
-            craftingStation.getField(FIELD_CRAFT_MATRIX).set(craftingStationInstance, craftMatrix);
-
-            craftingStation.getMethod(METHOD_ON_CRAFT_CHANGED, IInventory.class)
-                    .invoke(craftingStationInstance, craftMatrix);
-
-            return ((IInventory) craftingStation.getField(FIELD_CRAFT_RESULT).get(craftingStationInstance))
-                    .getStackInSlot(0);
-        } catch (Exception e) {
-            LogHelper.error("Error during reflection in getTinkersRecipe: " + e);
-            return null;
-        }
     }
 
     public static float getToolRotationAngle(ItemStack stack, boolean isLowerSlot) {
